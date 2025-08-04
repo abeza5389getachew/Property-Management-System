@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_property_management,access.property.management,model_property_management,base.group_user,1,1,1,1
+access_property_tenant,access.property.tenant,model_property_tenant,base.group_user,1,1,1,1
+access_property_lease,access.property.lease,model_property_lease,base.group_user,1,1,1,1
+access_rent_payment,access.rent.payment,model_rent_payment,base.group_user,1,1,1,1
