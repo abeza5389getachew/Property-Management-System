@@ -87,18 +87,6 @@ This module is a **capstone project** by **Abeza Getachew**, built to streamline
 
 ---
 
-## 📸 Screenshots
-
-*(Include screenshots of List View, Form View, Reports, Kanban if available)*
-
----
-
-## 📃 License
-
-This project is for academic and demonstration purposes only.
-
----
-
 ## 🙋‍♂️ Author
 
 **Abeza Getachew**  
