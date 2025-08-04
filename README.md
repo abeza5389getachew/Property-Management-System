@@ -6,7 +6,7 @@ An Odoo 18 custom module designed to manage properties, tenants, lease contracts
 
 ## 📌 Overview
 
-This module is a **capstone project** by **Abeza Getachew**, built to streamline the workflow for property owners, agents, and managers. It simplifies lease tracking, rent collection, document generation, and includes role-based access control for secure usage.
+This module is a **capstone project**, built to streamline the workflow for property owners, agents, and managers. It simplifies lease tracking, rent collection, document generation, and includes role-based access control for secure usage.
 
 ---
 
@@ -84,18 +84,6 @@ This module is a **capstone project** by **Abeza Getachew**, built to streamline
 - QWeb Reporting
 - XLSXWriter (for Excel export)
 - XML views, statusbar, widgets
-
----
-
-## 📸 Screenshots
-
-*(Include screenshots of List View, Form View, Reports, Kanban if available)*
-
----
-
-## 📃 License
-
-This project is for academic and demonstration purposes only.
 
 ---
 
