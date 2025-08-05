@@ -93,7 +93,7 @@ This module is a **capstone project**, built to streamline the workflow for prop
 Odoo Developer | Junior IT Officer  
 📧 abeza5389getachew@gmail.com  
 🌍 Addis Ababa, Ethiopia  
-[GitHub](https://github.com/AbezaGetachew)
+[GitHub](https://github.com/abeza5389getachew)
 
 ---
 
