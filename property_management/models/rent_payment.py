@@ -1,90 +1,86 @@
-from odoo import api, fields,models
+from odoo import api, fields, models
+from datetime import datetime
 from odoo.exceptions import ValidationError
-import re
 
-class PropertyTenant(models.Model):
-    _name = 'property.tenant'
-    _description = 'a tenant for apartement'
+class RentPayment(models.Model):
+    _name = "rent.payment"
+    _description = "Rent Payment"
 
-    name = fields.Char(string='Name', required= True)
-    email=fields.Char(string='Email', required = True)
-    phone=fields.Char(string ='Phone', required = True)
-    id_number=fields.Char(string ='Id Number', required = True)
-
-    lease_ids = fields.One2many('property.lease', 'tenant_id', string='Leases')
-
-    # @api.constrains('phone')
-    # def _check_phone_number(self):
-    #     for record in self:
-    #         ethio_phone_regex = r'^((\+2519\d{8})|(09\d{8}))$'
-    #         if record.phone and not re.match(ethio_phone_regex, record.phone):
-    #             raise ValidationError("Phone number must be Ethiopian format")
-            
-    # #check phone number
-    # @api.constrains('phone')
-    # def _check_phone_number(self):
-    #     for record in self:
-    #         phone_num = record.phone
-    #         pattern = r'^\+251[79]\d{8}$'
-    #         if not re.match( pattern,phone_num):
-    #             raise ValidationError("please enter a valid phone number")
-            
-    # @api.model
-    # def create(self, vals):
-    #     vals['phone'] = self._format_phone(vals.get('phone'))
-    #     return super().create(vals)
+    lease_id = fields.Many2one('property.lease', string='Lease', required=True)
+    payment_date = fields.Date(string='Payment Date', required=True)
     
-    # #update if error occure
-    # def write(self, vals):
-    #  if 'phone' in vals:
-    #      vals['phone'] = self._format_phone(vals.get('phone'))
-    #  return super().write(vals)
-    # #format phone from 09 to +251
-    # def _format_phone(self, phone_num):
-    #     if phone_num and not phone_num.startswith('+251'):
-    #        if re.fullmatch(r'[79]\d{8}', phone_num ):
-    #             return '+251' + phone_num
-    #     return phone_num
-    
-    # @api.constrains('phone')
-    # def _check_phone_number(self):
-    #     for record in self:
-    #         phone_num = record.phone
-    #         pattern = r'^\+251[79]\d{8}$'
-    #         if not re.match( pattern,phone_num):
-    #             raise ValidationError("please enter a valid phone number")
-    
-    def _format_phone(self, phone_num):
-            if phone_num and not phone_num.startswith('+251'):
-                if re.fullmatch(r'0[79]\d{8}', phone_num):
-                    return '+251' + phone_num[1:]
-            return phone_num
+    paid_amount = fields.Monetary(string='Paid Amount', compute='compute_paid_amount', store=True)
+    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+    status = fields.Selection([('paid', 'Paid'), ('unpaid', 'Unpaid')], string='State', required=True)
+    note = fields.Text(string='Note')
 
-    def _check_phone_number(self):
+    @api.depends('lease_id.start_date', 'lease_id.end_date', 'lease_id.monthly_rent')
+    def compute_paid_amount(self):
         for record in self:
-            pattern = r'^\+251[79]\d{8}$'
-            if not re.match(pattern, record.phone):
-                raise ValidationError("Please enter a valid Ethiopian phone number (e.g., 0912345678 or +251912345678)")
+            lease = record.lease_id
+            if lease.start_date and lease.end_date and lease.monthly_rent:
+                start = lease.start_date
+                end = lease.end_date
+                num_months = (end.year - start.year) * 12 + (end.month - start.month) + 1
+                record.paid_amount = num_months * lease.monthly_rent
+            else:
+                record.paid_amount = 0.0
 
-    @api.model
-    def create(self, vals):
-        if 'phone' in vals:
-            vals['phone'] = self._format_phone(vals.get('phone'))
-        record = super().create(vals)
-        record._check_phone_number()
-        return record
+    def _month_start_end(self, date_val):
+        month_start = date_val.replace(day=1)
+        if month_start.month == 12:
+            next_month_start = month_start.replace(year=month_start.year + 1, month=1)
+        else:
+            next_month_start = month_start.replace(month=month_start.month + 1)
+        return month_start, next_month_start
 
-    def write(self, vals):
-        if 'phone' in vals:
-            vals['phone'] = self._format_phone(vals.get('phone'))
-        res = super().write(vals)
-        self._check_phone_number()
-        return res
+    @api.constrains('lease_id', 'payment_date', 'status')
+    def _check_duplicate_payment(self):
+        for payment in self:
+            if payment.payment_date:
+                month_start, next_month_start = self._month_start_end(payment.payment_date)
 
-    #validate email
-    @api.constrains('email')
-    def _check_email(self):
-        for record in self:
-            email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
-            if record.email and not re.match(email_regex, record.email):
-                raise ValidationError("Email format is invalid.")
+                # If trying to create a 'paid' record, check for any unpaid or paid record for same lease/month
+                if payment.status == 'paid':
+                    existing = self.search([
+                        ('id', '!=', payment.id),
+                        ('lease_id', '=', payment.lease_id.id),
+                        ('payment_date', '>=', month_start),
+                        ('payment_date', '<', next_month_start),
+                        ('status', 'in', ['paid', 'unpaid']),
+                    ])
+                    if existing:
+                        raise ValidationError(
+                            "Cannot register a paid rent because there is already a paid or unpaid rent for this lease in the same month."
+                        )
+                # If trying to create an 'unpaid' record, check for any unpaid or paid record for same lease/month
+                elif payment.status == 'unpaid':
+                    existing = self.search([
+                        ('id', '!=', payment.id),
+                        ('lease_id', '=', payment.lease_id.id),
+                        ('payment_date', '>=', month_start),
+                        ('payment_date', '<', next_month_start),
+                        ('status', 'in', ['paid', 'unpaid']),
+                    ])
+                    if existing:
+                        raise ValidationError(
+                            "Cannot register an unpaid rent because there is already a paid or unpaid rent for this lease in the same month."
+                        )
+
+    def mark_as_paid(self):
+        for rec in self:
+            if rec.status == 'unpaid' and rec.payment_date:
+                month_start, next_month_start = self._month_start_end(rec.payment_date)
+                # Check if any paid or unpaid payment exists for same lease and month (excluding self)
+                existing = self.search([
+                    ('id', '!=', rec.id),
+                    ('lease_id', '=', rec.lease_id.id),
+                    ('payment_date', '>=', month_start),
+                    ('payment_date', '<', next_month_start),
+                    ('status', 'in', ['paid', 'unpaid']),
+                ])
+                if existing:
+                    raise ValidationError(
+                        "Cannot mark as paid because there is already another rent payment (paid or unpaid) for this lease in the same month."
+                    )
+                rec.status = 'paid'
