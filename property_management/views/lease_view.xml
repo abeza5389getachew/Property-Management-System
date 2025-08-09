@@ -13,6 +13,7 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="monthly_rent"/>
+                <field name="total_paid_amount" />
                 <field name="state"/>
             </list>
         </field>
@@ -26,6 +27,18 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <header>
+                        <button name="print_lease_summary_report"
+                                type="object"
+                                string="Download Lease Summary"
+                                class="btn-primary"/>
+                        
+                    </header>
+                    <header>
+                        <button name="export_xlsx" string="Export XLSX" type="object" class="btn-primary"/>
+
+                    </header>
+
                     <group>
                         <group>
                             <field name="lease_name"/>
@@ -41,6 +54,7 @@
                     <group>
                         
                         <field name="monthly_rent"/>
+                        <field name="total_paid_amount" />
                         <field name="state"/>
                     </group>
                 </sheet>
@@ -61,6 +75,7 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="monthly_rent"/>
+                <field name="total_paid_amount" />
                 <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
@@ -71,6 +86,7 @@
                             <div><strong>Start Date:</strong> <field name="start_date"/></div><br/>
                             <div><strong>End Date:</strong> <field name="end_date"/></div><br/>
                             <div><strong>Monthly Rent:</strong> <field name="monthly_rent"/></div><br/>
+                            <div><strong>Total Paid Amount:</strong> <field name="total_paid_amount"/></div><br/>
                             <div><strong>State:</strong> <field name="state"/></div>
                         </div>
                     </t>
