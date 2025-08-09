@@ -11,7 +11,7 @@
                 <field name="payment_date" />
                 <field name="currency_id"/>
 
-                <field name="amount_paid" />
+                <field name="paid_amount" />
                 <field name="status" />
                 <field name="note" />
             </list>
@@ -32,13 +32,18 @@
                         </group>
                         <group>
                             <field name="currency_id"/>
-                            <field name="amount_paid" />
+                            <field name="paid_amount" />
                         </group>
                     </group>
                     <group>
                         <field name="status" />
                         <field name="note" />
                     </group>
+                    <footer>
+                        <button name = 'mark_as_paid' type = 'object' string = 'Mark as Paid'
+                                class = 'btn_primary'
+                                invisible = "status == 'paid'" />
+                    </footer>
                 </sheet>
             </form>
         </field>
@@ -56,7 +61,7 @@
                 <field name="payment_date" />
                 <field name="currency_id"/>
 
-                <field name="amount_paid" />
+                <field name="paid_amount" />
                 <field name="status" />
                 <field name="note" />
 
@@ -79,7 +84,7 @@
                                     <strong>Amount Paid:</strong>
                                             <field name="currency_id"/>
 
-                                    <field name="amount_paid" />
+                                    <field name="paid_amount" />
                                 </div>
                                 <br />
                                 <div>
